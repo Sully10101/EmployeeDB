@@ -1,13 +1,15 @@
 import './App.css';
 import {getAllEmployees} from './client';
 import { Component } from 'react';
-import {Table} from 'antd';
+import Container from './Container';
+import {Avatar, Spin, Table} from 'antd';
 
 
 class App extends Component {
 
   state = {
-    employees: []
+    employees: [],
+    isFetching: false
   }
 
   componentDidMount () {
@@ -15,22 +17,45 @@ class App extends Component {
   }
 
   fetchEmployees = () => {
+    this.setState({
+      isFetching: true
+    });
     getAllEmployees()
       .then(res => res.json()
       .then(employees => {
         console.log(employees);
-        this.setState({employees})
+        this.setState({
+          employees,
+          isFetching: false
+        })
       }))
   };
   
 
   render() {
     
-    const { employees } = this.state;
+    const { employees, isFetching } = this.state;
     
+    if (isFetching) {
+      return (
+        <Container>
+          <Spin />
+        </Container>
+      )
+    }
+
     if(employees && employees.length){
       
       const columns = [
+        {
+          title: '',
+          dataIndex: 'avatar',
+          render: (text, employee) => (
+            <Avatar size='large'>
+              {`${employee.firstName.charAt(0).toUpperCase()}${employee.lastName.charAt(0).toUpperCase()}`}
+            </Avatar>
+          )
+        },
         {
           title: 'Employee ID',
           dataIndex: 'employeeId',
@@ -59,7 +84,9 @@ class App extends Component {
       ];
 
       return (
-        <Table dataSource={employees} columns={columns} rowKey='employeeId' />
+        <Container>
+          <Table dataSource={employees} columns={columns} rowKey='employeeId' pagination={false} />
+        </Container>
       );
 
     }
